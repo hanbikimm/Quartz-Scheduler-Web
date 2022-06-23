@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hansol.schedule.mapper.ScheduleMapper">
+	<insert id="addJob" parameterType="com.hansol.schedule.domain.JobLabel">
+		INSERT INTO JOB_LABEL
+		VALUES (NEXTVAL(SEQ_LABEL_ID), #{member_id}, #{job_name}, #{job_group}, #{job_class}, #{job_desc}, #{job_state}, DEFAULT, DEFAULT)
+	</insert>
+
+	<select id="findLabelId" resultType="int">
+		SELECT LABEL_ID
+		FROM JOB_LABEL
+		WHERE JOB_NAME = #{job_name} AND JOB_GROUP = #{job_group}
+	</select>
+	
+	<select id="findLabelId2" resultType="Integer">
+		SELECT LABEL_ID
+		FROM JOB_LABEL
+		WHERE JOB_NAME = #{job_name} AND JOB_GROUP = #{job_group} AND JOB_STATE = 'USING'
+	</select>
+
+	<insert id="addLog" parameterType="com.hansol.schedule.domain.JobLog">
+		INSERT INTO JOB_LOG
+		VALUES (NEXTVAL(SEQ_LOG_ID), #{label_id}, #{exec_result}, #{start_dt}, DEFAULT)
+	</insert>
+
+	<select id="findUsername" resultType="com.hansol.schedule.domain.Users">
+		SELECT USERNAME, NAME
+		FROM JOB_LABEL
+		INNER JOIN MEMBER ON MEMBER.MEMBER_ID = JOB_LABEL.MEMBER_ID
+		WHERE JOB_NAME = #{job_name} AND JOB_GROUP = #{job_group} AND JOB_STATE = 'USING'
+	</select>
+
+	<select id="findLabel" parameterType="int" resultType="com.hansol.schedule.domain.JobLabel">
+		SELECT *
+		FROM job_label
+		WHERE label_id = #{label_id}
+	</select>
+
+	<select id="existsByNames" parameterType="string" resultType="boolean">
+		SELECT IF(COUNT(*) = 1, TRUE, FALSE)
+		FROM JOB_LABEL
+		WHERE
+		JOB_NAME = #{job_name}
+		AND JOB_GROUP = #{job_group}
+	</select>
+	
+	<update id="updateJob" parameterType="com.hansol.schedule.domain.JobLabel">
+		UPDATE JOB_LABEL
+		SET JOB_DESC = #{job_desc}, JOB_CLASS = #{job_class}, UPDATED_DT = DEFAULT
+		WHERE JOB_NAME = #{job_name}
+		  AND JOB_GROUP = #{job_group}
+	</update>
+	
+	<update id="updateJobState" parameterType="com.hansol.schedule.domain.JobLabel">
+		UPDATE JOB_LABEL
+		SET JOB_STATE = #{job_state}, UPDATED_DT = DEFAULT
+		WHERE JOB_NAME = #{job_name}
+		  AND JOB_GROUP = #{job_group}
+	</update>
+
+	<select id="getLogList" resultType="com.hansol.schedule.dto.LogResponse">
+		SELECT *
+		FROM (SELECT ROW_NUMBER() OVER (ORDER BY START_DT DESC) AS LOG_ID, JOB_NAME, JOB_GROUP, JOB_STATE, TO_CHAR(START_DT,'YYYY-MM-DD HH24:MI:ss') AS START_DT, END_DT
+			FROM
+			(
+				SELECT JOB_NAME, JOB_GROUP, 'CREATED' AS JOB_STATE,
+				CREATED_DT AS START_DT, 'N/A' AS END_DT
+				FROM JOB_LABEL
+
+				UNION ALL
+
+				SELECT JOB_NAME, JOB_GROUP, JOB_STATE,
+				UPDATED_DT AS START_DT, 'N/A' AS END_DT
+				FROM JOB_LABEL WHERE NOT JOB_STATE = 'USING'
+
+				UNION ALL
+
+				SELECT JOB_NAME, JOB_GROUP, EXEC_RESULT AS JOB_STATE, START_DT, END_DT 
+				FROM JOB_LOG INNER JOIN JOB_LABEL
+				ON
+				JOB_LABEL.LABEL_ID = JOB_LOG.LABEL_ID
+			)AS UN
+		)AS RN
+		WHERE LOG_ID BETWEEN #{start} AND #{end}
+	</select>
+	
+	<select id="countAllLog" resultType="int">
+		SELECT COUNT(*)
+		FROM
+			(
+				SELECT JOB_NAME, JOB_GROUP, 'CREATED' AS JOB_STATE,
+				CREATED_DT AS START_DT, 'N/A' AS END_DT
+				FROM JOB_LABEL
+
+				UNION ALL
+
+				SELECT JOB_NAME, JOB_GROUP, JOB_STATE,
+				UPDATED_DT AS START_DT, 'N/A' AS END_DT
+				FROM JOB_LABEL WHERE NOT JOB_STATE = 'USING'
+
+				UNION ALL
+
+				SELECT JOB_NAME, JOB_GROUP, EXEC_RESULT AS JOB_STATE, START_DT, END_DT 
+				FROM JOB_LOG INNER JOIN JOB_LABEL
+				ON
+				JOB_LABEL.LABEL_ID = JOB_LOG.LABEL_ID
+			)AS UN
+	</select>
+	<update id="deleteJob" parameterType="int">
+		UPDATE JOB_LABEL
+		SET JOB_STATE = 'DELETED', UPDATED_DT = DEFAULT
+		WHERE LABEL_ID = #{label_id}
+	</update>
+	
+	<insert id="addIndivLog" parameterType="com.hansol.schedule.domain.IndivLog">
+		INSERT INTO JOB_INDIV_LOG
+		VALUES (NEXTVAL(SEQ_INDIV_ID), #{label_id}, DEFAULT, #{message})
+	</insert>
+	
+	<select id="getIndivLog" resultType="com.hansol.schedule.dto.IndivLogResponse">
+		SELECT TO_CHAR(LOGGING_DT,'YYYY-MM-DD HH24:MI:ss') AS LOGGING_DT, MESSAGE
+		FROM JOB_INDIV_LOG
+		WHERE LABEL_ID = #{label_Id}
+		ORDER BY INDIV_ID DESC
+	</select>
+	
+</mapper>

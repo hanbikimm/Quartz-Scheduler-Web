@@ -1,0 +1,53 @@
+// Simple Job 등록하기 (시작 시간 확인)
+{
+  "jobGroup": "그룹1",
+  "jobName": "작업1",
+  "repeatInterval": 60,
+  "repeatCount": 3,
+  "startDt": "2022-05-02 13:30:00",
+  "endDt": "2022-05-10 13:30:00",
+  "jobClass": "SimpleJob",
+  "jobDesc": "설명",
+  "jobDataKey": "sampleKey",
+  "jobDataValue": "sampleValue",
+  "trigger": "SIMPLE"
+}
+
+// Simple Job 수정하기 (시작 시간 확인)
+{
+  "trigger": "SIMPLE",
+  "jobClass": "SimpleJob",
+  "jobDesc": "설명다시씀",
+  "jobDataKey": "sampleKey",
+  "jobDataValue": "sampleValue",
+  "repeatCount": 10,
+  "repeatInterval": 60,
+  "startDt": "2022-05-02 13:30:00",
+  "endDt": "2022-05-10 13:30:00"
+}
+
+// Cron Job 등록하기 (시작 시간 확인)
+{
+  "jobGroup": "그룹2",
+  "jobName": "작업1",
+  "cronExpression": "0 0/1 * * * ?",
+  "startDt": "2022-05-02 13:30:00",
+  "endDt": "2022-05-10 13:30:00",
+  "jobClass": "CronJob",
+  "jobDesc": "설명",
+  "jobDataKey": "sampleKey",
+  "jobDataValue": "sampleValue",
+  "trigger": "CRON"
+}
+
+// Cron Job 수정하기 (시작 시간 확인)
+{
+  "trigger": "CRON",
+  "jobClass": "CronJob",
+  "jobDesc": "설명다시씀",
+  "jobDataKey": "sampleKey",
+  "jobDataValue": "sampleValue",
+  "cronExpression": "0 0/1 * * * ?",
+  "startDt": "2022-05-02 13:30:00",
+  "endDt": "2022-05-10 13:30:00"
+}
